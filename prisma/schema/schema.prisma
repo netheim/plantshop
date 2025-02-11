@@ -13,3 +13,90 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum PlantType {
+  HOUSE_PLANTS // Комнатные растения
+  GARDEN_PLANTS // Садовые и огородные растения
+  FLOWERS // Цветы
+}
+
+// ─── Модель пользователей ───────────────────────────────────────────────────
+model User {
+  id        String   @id @default(uuid()) // Уникальный ID (UUID)
+  name      String
+  email     String   @unique
+  password  String
+  reviews   Review[] // Один пользователь может оставить много отзывов
+  orders    Order[] // Один пользователь может сделать несколько заказов
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Cart      Cart[]
+}
+
+// ─── Модель категорий ───────────────────────────────────────────────────────
+model Category {
+  id       Int       @id @default(autoincrement()) // Автоинкрементный ID
+  name     String    @unique
+  products Product[] @relation("ProductCategories") // Многие ко многим (категории ↔ товары)
+}
+
+// ─── Модель товаров (растений) ──────────────────────────────────────────────
+model Product {
+  id          Int            @id @default(autoincrement())
+  title       String         @unique
+  description String?
+  price       Float
+  imageUrl    String?
+  type        PlantType
+  categories  Category[]     @relation("ProductCategories") // Привязка к категориям
+  reviews     Review[] // Один товар может иметь много отзывов
+  orders      OrderProduct[]
+  createdAt   DateTime       @default(now())
+  updatedAd   DateTime       @updatedAt
+  Cart        Cart?          @relation(fields: [cartId], references: [id])
+  cartId      Int?
+}
+
+// ─── Модель отзывов ─────────────────────────────────────────────────────────
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int // Оценка от 1 до 5
+  comment   String?
+  user      User     @relation(fields: [userId], references: [id]) // Связь с пользователем
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id]) // Связь с товаром
+  productId Int
+  createdAt DateTime @default(now())
+}
+
+// ─── Модель корзины ─────────────────────────────────────────────────────────
+model Cart {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  // products  Product[]
+  createdAt DateTime  @default(now())
+  Product   Product[]
+}
+
+// ─── Модель заказов ─────────────────────────────────────────────────────────
+model Order {
+  id        Int            @id @default(autoincrement())
+  user      User           @relation(fields: [userId], references: [id])
+  userId    String
+  products  OrderProduct[] // Связь многие ко многим через промежуточную таблицу
+  total     Float
+  createdAt DateTime       @default(now())
+}
+
+// ─── Промежуточная таблица для связи заказов и товаров ─────────────────────
+model OrderProduct {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+}
+
+// ─── Типы растений ──────────────────────────────────────────────────────────
