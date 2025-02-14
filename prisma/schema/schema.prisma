@@ -30,7 +30,7 @@ model User {
   orders    Order[] // Один пользователь может сделать несколько заказов
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Cart      Cart[]
+  Cart      Cart?
 }
 
 // ─── Модель категорий ───────────────────────────────────────────────────────
@@ -42,7 +42,8 @@ model Category {
 
 // ─── Модель товаров (растений) ──────────────────────────────────────────────
 model Product {
-  id          Int            @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   title       String         @unique
   description String?
   price       Float
@@ -67,16 +68,17 @@ model Review {
   product   Product  @relation(fields: [productId], references: [id]) // Связь с товаром
   productId Int
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ─── Модель корзины ─────────────────────────────────────────────────────────
 model Cart {
   id        Int       @id @default(autoincrement())
   user      User      @relation(fields: [userId], references: [id])
-  userId    String
-  // products  Product[]
+  userId    String    @unique
+  products  Product[]
   createdAt DateTime  @default(now())
-  Product   Product[]
+  updatedAt DateTime  @updatedAt
 }
 
 // ─── Модель заказов ─────────────────────────────────────────────────────────
